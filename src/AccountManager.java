@@ -103,16 +103,33 @@ public class AccountManager {
     }
 
     public void listPendingAccounts() {
-        boolean found = false;
+        ArrayList<String[]> rows = new ArrayList<>();
         for (Account a : accounts) {
             if (a.getStatus().equals("pending")) {
-                System.out.println(a.getUsername() + " (" + a.getType() + ")");
-                found = true;
+                rows.add(new String[]{a.getUsername(), a.getType(), a.getStatus()});
             }
         }
-        if (!found) {
+        if (rows.isEmpty()) {
             System.out.println("No pending accounts found.");
+            return;
         }
+        Main.printTable(
+                new String[]{"Username", "Type", "Status"},
+                new boolean[]{false, false, false},
+                rows);
+    }
+
+    // Shows one account's credit standing as a table (used by cashier lookup and
+    // by the customer's own "View My Balance").
+    public static void printBalance(Account a) {
+        ArrayList<String[]> rows = new ArrayList<>();
+        rows.add(new String[]{a.getUsername(), "₱" + Main.money(a.getBalance()),
+                "₱" + Main.money(a.getCreditLimit()),
+                "₱" + Main.money(Math.max(0, a.getCreditLimit() - a.getBalance()))});
+        Main.printTable(
+                new String[]{"Customer", "Balance", "Credit Limit", "Available Credit"},
+                new boolean[]{false, true, true, true},
+                rows);
     }
 
     public boolean createCashierAccount(String user, String pass) {

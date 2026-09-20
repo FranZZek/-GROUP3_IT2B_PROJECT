@@ -37,16 +37,21 @@ public class TransactionManager {
     }
 
     public void listTransactionsFor(String customer) {
-        boolean found = false;
+        ArrayList<String[]> rows = new ArrayList<>();
         for (Transaction t : transactions) {
             if (t.getCustomerUsername().equals(customer)) {
-                System.out.println(t);
-                found = true;
+                rows.add(new String[]{t.getId(), t.getDate(), t.getPaymentType(), t.getProductId(),
+                        String.valueOf(t.getQuantity()), "₱" + Main.money(t.getTotalAmount())});
             }
         }
-        if (!found) {
+        if (rows.isEmpty()) {
             System.out.println("No transactions found.");
+            return;
         }
+        Main.printTable(
+                new String[]{"Txn ID", "Date", "Type", "Product", "Qty", "Total"},
+                new boolean[]{false, false, false, false, true, true},
+                rows);
     }
 
     // Generates a simple digital receipt: prints it to the console and saves a

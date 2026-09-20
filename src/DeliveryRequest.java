@@ -3,7 +3,7 @@ public class DeliveryRequest {
     private String customerUsername;
     private String productId;
     private int quantity;
-    private String status; // "pending", "fulfilled", "rejected"
+    private String status; // "pending", "approved", "fulfilled", "rejected"
     private String date;
 
     public DeliveryRequest(String id, String customerUsername, String productId, int quantity,

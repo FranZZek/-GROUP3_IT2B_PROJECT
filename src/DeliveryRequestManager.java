@@ -35,33 +35,59 @@ public class DeliveryRequestManager {
     }
 
     public void listRequestsFor(String customer) {
-        boolean found = false;
+        ArrayList<DeliveryRequest> matches = new ArrayList<>();
         for (DeliveryRequest r : requests) {
-            if (r.getCustomerUsername().equals(customer)) {
-                System.out.println(r);
-                found = true;
-            }
+            if (r.getCustomerUsername().equals(customer)) matches.add(r);
         }
-        if (!found) {
+        if (matches.isEmpty()) {
             System.out.println("No delivery requests found.");
+            return;
         }
+        printRequestTable(matches);
     }
 
     public void listPendingRequests() {
-        boolean found = false;
+        ArrayList<DeliveryRequest> matches = new ArrayList<>();
         for (DeliveryRequest r : requests) {
-            if (r.getStatus().equals("pending")) {
-                System.out.println(r);
-                found = true;
-            }
+            if (r.getStatus().equals("pending")) matches.add(r);
         }
-        if (!found) {
+        if (matches.isEmpty()) {
             System.out.println("No pending delivery requests found.");
+            return;
         }
+        printRequestTable(matches);
     }
 
-    // Looks up a single request by ID — used when fulfilling/rejecting so we can
-    // validate stock and build a transaction before flipping the status.
+
+    // <-- ADDED: entire method is new
+    // Requests Admin has approved but that haven't been turned into a sale yet.
+    // This is the queue Cashier works from when finalizing a delivery.
+    public void listApprovedRequests() {
+        ArrayList<DeliveryRequest> matches = new ArrayList<>();
+        for (DeliveryRequest r : requests) {
+            if (r.getStatus().equals("approved")) matches.add(r);
+        }
+        if (matches.isEmpty()) {
+            System.out.println("No approved delivery requests waiting to be finalized.");
+            return;
+        }
+        printRequestTable(matches);
+    }
+
+    private void printRequestTable(ArrayList<DeliveryRequest> list) {
+        ArrayList<String[]> rows = new ArrayList<>();
+        for (DeliveryRequest r : list) {
+            rows.add(new String[]{r.getId(), r.getDate(), r.getCustomerUsername(), r.getProductId(),
+                    String.valueOf(r.getQuantity()), r.getStatus()});
+        }
+        Main.printTable(
+                new String[]{"Request ID", "Date", "Customer", "Product", "Qty", "Status"},
+                new boolean[]{false, false, false, false, true, false},
+                rows);
+    }
+
+    // Looks up a single request by ID — used by Admin when approving/rejecting,
+    // and by Cashier when finalizing an approved request into an actual sale.
     public DeliveryRequest getRequest(String id) {
         for (DeliveryRequest r : requests) {
             if (r.getId().equals(id)) return r;

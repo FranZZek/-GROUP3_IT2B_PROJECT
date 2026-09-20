@@ -10,7 +10,6 @@ public class Admin extends Account {
         Inventory inventory = store.getInventory();
         AccountManager accountManager = store.getAccountManager();
         DeliveryRequestManager deliveryRequestManager = store.getDeliveryRequestManager();
-        TransactionManager transactionManager = store.getTransactionManager();
 
         int choice;
         do {
@@ -20,7 +19,7 @@ public class Admin extends Account {
             System.out.println("3. List Products");
             System.out.println("4. Set Customer Credit Limit");
             System.out.println("5. View Delivery Requests");
-            System.out.println("6. Update Delivery Request Status");
+            System.out.println("6. Approve/Reject Delivery Request");
             System.out.println("0. Logout");
             System.out.print("Choose: ");
             choice = Main.getIntInput(sc);
@@ -103,10 +102,10 @@ public class Admin extends Account {
                         break;
                     }
 
-                    System.out.print("New status (fulfilled/rejected): ");
+                    System.out.print("New status (approved/rejected): ");
                     String status = sc.next().toLowerCase();
-                    if (!status.equals("fulfilled") && !status.equals("rejected")) {
-                        System.out.println("Status must be 'fulfilled' or 'rejected'.");
+                    if (!status.equals("approved") && !status.equals("rejected")) {
+                        System.out.println("Status must be 'approved' or 'rejected'.");
                         Main.pauseAndClear(sc);
                         break;
                     }
@@ -118,23 +117,22 @@ public class Admin extends Account {
                         break;
                     }
 
-                    // Fulfilling a request is a sale — route it through the exact same
-                    // stock + credit + transaction pipeline a cashier's sale uses, so it
-                    // shows up in the customer's transaction history automatically.
+                    // Admin's job stops here — approving just clears the request for a sale.
+                    // A Cashier is the one who actually collects payment, moves stock, and
+                    // records the transaction, from their own menu.
                     Product product = inventory.getProduct(req.getProductId());
                     if (product == null) {
-                        System.out.println("That product no longer exists — can't fulfill this request.");
+                        System.out.println("That product no longer exists — can't approve this request.");
                         Main.pauseAndClear(sc);
                         break;
                     }
                     if (req.getQuantity() > product.getStock()) {
-                        System.out.println("Not enough stock to fulfill this request! (" +
+                        System.out.println("Not enough stock to approve this request! (" +
                                 product.getStock() + " in stock, " + req.getQuantity() + " requested)");
                         System.out.println("Add stock first, then try again — the request is still pending.");
                         Main.pauseAndClear(sc);
                         break;
                     }
-
                     Account customerAcc = accountManager.getAccount(req.getCustomerUsername());
                     if (customerAcc == null) {
                         System.out.println("That customer account no longer exists.");
@@ -142,33 +140,8 @@ public class Admin extends Account {
                         break;
                     }
 
-                    double total = req.getQuantity() * product.getPrice();
-
-                    System.out.print("Payment type (CASH/CREDIT): ");
-                    String payType = sc.next().toUpperCase();
-                    if (!payType.equals("CASH") && !payType.equals("CREDIT")) {
-                        System.out.println("Payment type must be CASH or CREDIT.");
-                        Main.pauseAndClear(sc);
-                        break;
-                    }
-                    if (payType.equals("CREDIT") && !customerAcc.canBuyOnCredit(total)) {
-                        System.out.println("Blocked: exceeds this customer's credit limit!");
-                        Main.pauseAndClear(sc);
-                        break;
-                    }
-
-                    inventory.deductStock(product.getId(), req.getQuantity());
-                    if (payType.equals("CREDIT")) {
-                        customerAcc.addToBalance(total);
-                        accountManager.rewriteFile();
-                    }
-
-                    Transaction t = transactionManager.recordTransaction(
-                            req.getCustomerUsername(), product.getId(), req.getQuantity(), total, payType);
-                    deliveryRequestManager.updateStatus(id, "fulfilled");
-
-                    System.out.println("Request fulfilled! Total: ₱" + Main.money(total));
-                    transactionManager.generateReceipt(t, product);
+                    deliveryRequestManager.updateStatus(id, "approved");
+                    System.out.println("Request approved! A cashier can now finalize it as a sale.");
                     Main.pauseAndClear(sc);
                 }
                 case 0 -> {
@@ -184,3 +157,5 @@ public class Admin extends Account {
         } while (choice != 0);
     }
 }
+
+

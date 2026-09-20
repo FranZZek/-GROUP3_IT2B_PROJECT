@@ -42,6 +42,38 @@ public class Main {
         return String.format("%.2f", amount);
     }
 
+    // Prints rows as a bordered table. Column widths are computed from the data, so it
+    // stays aligned no matter how long a name or amount is. rightAlign[i] = true right-
+    // aligns column i (use it for numbers/money). Plain ASCII borders are used on purpose
+    // so the table lines up in every console, including ones that mangle box-drawing chars.
+    public static void printTable(String[] headers, boolean[] rightAlign, java.util.List<String[]> rows) {
+        int cols = headers.length;
+        int[] width = new int[cols];
+        for (int i = 0; i < cols; i++) width[i] = headers[i].length();
+        for (String[] row : rows) {
+            for (int i = 0; i < cols; i++) width[i] = Math.max(width[i], row[i].length());
+        }
+
+        StringBuilder line = new StringBuilder("+");
+        for (int i = 0; i < cols; i++) line.append("-".repeat(width[i] + 2)).append("+");
+        String border = line.toString();
+
+        System.out.println(border);
+        printTableRow(headers, width, new boolean[cols]); // headers are always left-aligned
+        System.out.println(border);
+        for (String[] row : rows) printTableRow(row, width, rightAlign);
+        System.out.println(border);
+    }
+
+    private static void printTableRow(String[] cells, int[] width, boolean[] rightAlign) {
+        StringBuilder sb = new StringBuilder("|");
+        for (int i = 0; i < width.length; i++) {
+            String fmt = rightAlign[i] ? " %" + width[i] + "s |" : " %-" + width[i] + "s |";
+            sb.append(String.format(fmt, cells[i]));
+        }
+        System.out.println(sb);
+    }
+
     // ANSI escape codes — supported by most modern terminals (macOS Terminal, most
     // Linux terminals, Windows Terminal, VS Code's integrated terminal, IntelliJ's
     // console). Older plain Windows cmd.exe windows may not honor these and will

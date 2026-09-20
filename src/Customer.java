@@ -24,7 +24,7 @@ public class Customer extends Account {
 
             switch (choice) {
                 case 1 -> {
-                    System.out.println("Balance: ₱" + Main.money(getBalance()) + " / Limit: ₱" + Main.money(getCreditLimit()));
+                    AccountManager.printBalance(this);
                     Main.pauseAndClear(sc);
                 }
                 case 2 -> {

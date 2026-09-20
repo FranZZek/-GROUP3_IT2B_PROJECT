@@ -72,9 +72,14 @@ public class Inventory {
             System.out.println("No products found.");
             return;
         }
+        ArrayList<String[]> rows = new ArrayList<>();
         for (Product p : products) {
-            System.out.println(p.getId() + " - " + p.getName() + " | stock: " + p.getStock() + " | price: ₱" + Main.money(p.getPrice()));
+            rows.add(new String[]{p.getId(), p.getName(), String.valueOf(p.getStock()), "₱" + Main.money(p.getPrice())});
         }
+        Main.printTable(
+                new String[]{"ID", "Product", "Stock", "Price"},
+                new boolean[]{false, false, true, true},
+                rows);
     }
 
     private void saveProduct(Product p) {
